@@ -2,6 +2,12 @@
 
 usage () {
 echo usage: "$0" "[--check | --force]"
+echo Run ormolu formatter on Haskell files in a git repository, respecting
+echo .gitignore rules.
+echo
+echo "  " "--check  display files that need formatting"
+echo "  " "--force  format all files, even those already formatted"
+echo "  " "--help   display this help and exit"
 }
 
 check_only=
@@ -12,6 +18,10 @@ do
 key="$1"
 
 case $key in
+    --help)
+    usage
+    exit
+    ;;
     --check)
     check_only=1
     shift
