@@ -44,6 +44,16 @@ if [[ -n $check_only && -n $force ]]; then
     exit
 fi
 
+run_ormolu () {
+    files=("$@")
+    if [ ${#files[@]} -eq 0 ]; then
+        return
+    fi
+
+    printf '%s\0' "${files[@]}" |
+    xargs -0 ormolu --mode=inplace
+}
+
 extensions=(hs lhs)
 git_flags=(--cached --others --exclude-standard)
 patterns=( "${extensions[@]/#/*.}" )
@@ -52,18 +62,27 @@ get_source_files () {
     git ls-files -z "${git_flags[@]}" "${patterns[@]}"
 }
 
+readarray -d $'\0' source_files < <( get_source_files )
+declare -a unformatted_files
+
+if [[ -z $force ]]; then
+    for file in "${source_files[@]}"; do
+        if ! ormolu --mode=check "$file" ; then
+            unformatted_files+=("$file")
+        fi
+    done
+fi
+
 if [[ -n $check_only ]]; then
-    get_source_files |
-    xargs -0 -I % bash -c 'ormolu --mode=check "%" || echo \"%\" "needs formatting"'
+    for file in "${unformatted_files[@]}"; do
+        echo \""$file"\" needs formatting
+    done
     exit
 fi
 
 if [[ -n $force ]]; then
-    get_source_files |
-    xargs -0 --no-run-if-empty ormolu --mode=inplace
+    run_ormolu "${source_files[@]}"
     exit
 fi
 
-get_source_files |
-xargs -0 -I % bash -c 'ormolu --mode=check "%" || echo \"%\"' |
-xargs -I % ormolu --mode=inplace %
+run_ormolu "${unformatted_files[@]}"
