@@ -1,19 +1,21 @@
 #!/bin/bash
 
 usage () {
-echo usage: "$0" "([--check] | [--force]) [--print-modified]"
+echo usage: "$0" "([--check] | [--force]) [--print-modified] [--with-ormolu PATH]"
 echo Run ormolu formatter on Haskell files in a git repository, respecting
 echo .gitignore rules.
 echo
-echo "  " "--check            display files that need formatting"
-echo "  " "--force            format all files, even those already formatted"
-echo "  " "--print-modified   print modified files"
-echo "  " "--help             display this help and exit"
+echo "  " "--check             display files that need formatting"
+echo "  " "--force             format all files, even those already formatted"
+echo "  " "--print-modified    print modified files"
+echo "  " "--with-ormolu PATH  use ormolu found at PATH"
+echo "  " "--help              display this help and exit"
 }
 
 check_only=
 force=
 print_modified=
+ormolu_executable=ormolu
 
 while [[ $# -gt 0 ]]
 do
@@ -34,6 +36,14 @@ case $key in
     ;;
     --print-modified)
     print_modified=1
+    shift
+    ;;
+    --with-ormolu)
+    ormolu_executable=$2
+    shift 2
+    ;;
+    --with-ormolu=*)
+    ormolu_executable=${1#*=}
     shift
     ;;
     *)
@@ -57,7 +67,7 @@ run_ormolu () {
     fi
 
     printf '%s\0' "${files[@]}" |
-    xargs -0 ormolu --mode=inplace
+    xargs -0 "$ormolu_executable" --mode=inplace
 }
 
 print_files_with_prefix_and_suffix () {
@@ -91,7 +101,7 @@ declare -a unformatted_files
 
 if [[ -z $force ]]; then
     for file in "${source_files[@]}"; do
-        if ! ormolu --mode=check "$file" ; then
+        if ! "$ormolu_executable" --mode=check "$file" ; then
             unformatted_files+=("$file")
         fi
     done
