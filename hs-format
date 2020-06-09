@@ -55,8 +55,7 @@ fi
 
 if [[ -n $force ]]; then
     git ls-files -z "${git_flags[@]}" "${patterns[@]}" |
-    xargs -0 printf -- ' "%s"\n' |
-    xargs ormolu --mode=inplace
+    xargs -0 ormolu --mode=inplace
     exit
 fi
 
