@@ -47,18 +47,23 @@ fi
 extensions=(hs lhs)
 git_flags=(--cached --others --exclude-standard)
 patterns=( "${extensions[@]/#/*.}" )
+
+get_source_files () {
+    git ls-files -z "${git_flags[@]}" "${patterns[@]}"
+}
+
 if [[ -n $check_only ]]; then
-    git ls-files -z "${git_flags[@]}" "${patterns[@]}" |
+    get_source_files |
     xargs -0 -I % bash -c 'ormolu --mode=check "%" || echo \"%\" "needs formatting"'
     exit
 fi
 
 if [[ -n $force ]]; then
-    git ls-files -z "${git_flags[@]}" "${patterns[@]}" |
+    get_source_files |
     xargs -0 --no-run-if-empty ormolu --mode=inplace
     exit
 fi
 
-git ls-files -z "${git_flags[@]}" "${patterns[@]}" |
+get_source_files |
 xargs -0 -I % bash -c 'ormolu --mode=check "%" || echo \"%\"' |
 xargs -I % ormolu --mode=inplace %
