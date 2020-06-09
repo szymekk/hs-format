@@ -1,15 +1,17 @@
 #!/bin/bash
 
 usage () {
-echo usage: "$0" "([--check] | [--force]) [--print-modified] [--with-ormolu PATH]"
-echo Run ormolu formatter on Haskell files in a git repository, respecting
-echo .gitignore rules.
-echo
-echo "  " "--check             display files that need formatting"
-echo "  " "--force             format all files, even those already formatted"
-echo "  " "--print-modified    print modified files"
-echo "  " "--with-ormolu PATH  use ormolu found at PATH"
-echo "  " "--help              display this help and exit"
+cat <<EOF
+usage: $0 ([--check] | [--force]) [--print-modified] [--with-ormolu PATH]
+Run ormolu, a Haskell source formatter, on Haskell files in a git repository,
+respecting .gitignore rules.
+
+  --check             display files that need formatting
+  --force             format all files, even those already formatted
+  --print-modified    print modified files
+  --with-ormolu PATH  use ormolu found at PATH
+  --help              display this help and exit
+EOF
 }
 
 check_only=
