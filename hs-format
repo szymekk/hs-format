@@ -1,17 +1,19 @@
 #!/bin/bash
 
 usage () {
-echo usage: "$0" "[--check | --force]"
+echo usage: "$0" "([--check] | [--force]) [--print-modified]"
 echo Run ormolu formatter on Haskell files in a git repository, respecting
 echo .gitignore rules.
 echo
-echo "  " "--check  display files that need formatting"
-echo "  " "--force  format all files, even those already formatted"
-echo "  " "--help   display this help and exit"
+echo "  " "--check            display files that need formatting"
+echo "  " "--force            format all files, even those already formatted"
+echo "  " "--print-modified   print modified files"
+echo "  " "--help             display this help and exit"
 }
 
 check_only=
 force=
+print_modified=
 
 while [[ $# -gt 0 ]]
 do
@@ -28,6 +30,10 @@ case $key in
     ;;
     --force)
     force=1
+    shift
+    ;;
+    --print-modified)
+    print_modified=1
     shift
     ;;
     *)
@@ -52,6 +58,13 @@ run_ormolu () {
 
     printf '%s\0' "${files[@]}" |
     xargs -0 ormolu --mode=inplace
+}
+
+print_files () {
+    files=("$@")
+    for file in "${files[@]}"; do
+        echo "\"$file\" will be modified"
+    done
 }
 
 extensions=(hs lhs)
@@ -81,8 +94,16 @@ if [[ -n $check_only ]]; then
 fi
 
 if [[ -n $force ]]; then
+    if [[ -n $print_modified ]]; then
+        print_files "${source_files[@]}"
+    fi
+
     run_ormolu "${source_files[@]}"
     exit
+fi
+
+if [[ -n $print_modified ]]; then
+    print_files "${unformatted_files[@]}"
 fi
 
 run_ormolu "${unformatted_files[@]}"
