@@ -60,11 +60,22 @@ run_ormolu () {
     xargs -0 ormolu --mode=inplace
 }
 
-print_files () {
+print_files_with_prefix_and_suffix () {
+    prefix=$1
+    suffix=$2
+    shift 2
     files=("$@")
     for file in "${files[@]}"; do
-        echo "\"$file\" will be modified"
+        echo "$prefix""$file""$suffix"
     done
+}
+
+print_files_to_be_modified () {
+    print_files_with_prefix_and_suffix \" '" will be modified' "$@"
+}
+
+print_files_unformatted () {
+    print_files_with_prefix_and_suffix \" '" needs formatting' "$@"
 }
 
 extensions=(hs lhs)
@@ -87,15 +98,13 @@ if [[ -z $force ]]; then
 fi
 
 if [[ -n $check_only ]]; then
-    for file in "${unformatted_files[@]}"; do
-        echo \""$file"\" needs formatting
-    done
+    print_files_unformatted "${unformatted_files[@]}"
     exit
 fi
 
 if [[ -n $force ]]; then
     if [[ -n $print_modified ]]; then
-        print_files "${source_files[@]}"
+        print_files_to_be_modified "${source_files[@]}"
     fi
 
     run_ormolu "${source_files[@]}"
@@ -103,7 +112,7 @@ if [[ -n $force ]]; then
 fi
 
 if [[ -n $print_modified ]]; then
-    print_files "${unformatted_files[@]}"
+    print_files_to_be_modified "${unformatted_files[@]}"
 fi
 
 run_ormolu "${unformatted_files[@]}"
