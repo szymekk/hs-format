@@ -83,11 +83,11 @@ print_files_with_prefix_and_suffix () {
 }
 
 print_files_to_be_modified () {
-    print_files_with_prefix_and_suffix \' "' will be modified" "$@"
+    print_files_with_prefix_and_suffix "applying formatting: '" \' "$@"
 }
 
 print_files_unformatted () {
-    print_files_with_prefix_and_suffix \' "' needs formatting" "$@"
+    print_files_with_prefix_and_suffix "needs formatting: '" \' "$@"
 }
 
 extensions=(hs lhs)
