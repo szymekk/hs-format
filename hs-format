@@ -17,7 +17,7 @@ EOF
 check_only=
 force=
 print_modified=
-ormolu_executable=ormolu
+custom_ormolu_path=
 
 while [[ $# -gt 0 ]]
 do
@@ -41,11 +41,21 @@ case $key in
     shift
     ;;
     --with-ormolu)
-    ormolu_executable=$2
+    if [[ $# -lt 2 ]] ; then
+        echo The option \'--with-ormolu\' expects an argument.
+        usage
+        exit
+    fi
+    custom_ormolu_path=$2
     shift 2
     ;;
     --with-ormolu=*)
-    ormolu_executable=${1#*=}
+    custom_ormolu_path=${1#*=}
+    if [[ -z "$custom_ormolu_path" ]] ; then
+        echo The option \'--with-ormolu\' expects an argument.
+        usage
+        exit
+    fi
     shift
     ;;
     *)
@@ -55,6 +65,27 @@ case $key in
     ;;
 esac
 done
+
+is_available () {
+    type "$1" >/dev/null 2>&1
+}
+
+ormolu_executable=ormolu
+
+if [[ -n "$custom_ormolu_path" ]]; then
+    if ! is_available "$custom_ormolu_path" ; then
+        echo "$0": Did not find ormolu at specified path: "$custom_ormolu_path"
+        usage
+        exit
+    fi
+    ormolu_executable="$custom_ormolu_path"
+fi
+
+if ! is_available "$ormolu_executable" ; then
+    echo "$0": Did not find ormolu.
+    usage
+    exit
+fi
 
 if [[ -n $check_only && -n $force ]]; then
     echo "$0": --check cannot be used with --force
