@@ -14,6 +14,21 @@ respecting .gitignore rules.
 EOF
 }
 
+die () {
+    return_code=$1
+    shift
+    [[ $# -ne 0 ]] && echo "$0": "$*"
+    exit "$return_code"
+}
+
+die_with_usage () {
+    return_code=$1
+    shift
+    [[ $# -ne 0 ]] && echo "$0": "$*"
+    usage
+    exit "$return_code"
+}
+
 check_only=
 force=
 print_modified=
@@ -42,9 +57,7 @@ case $key in
     ;;
     --with-ormolu)
     if [[ $# -lt 2 ]] ; then
-        echo The option \'--with-ormolu\' expects an argument.
-        usage
-        exit
+        die 1 "The option '--with-ormolu' expects an argument."
     fi
     custom_ormolu_path=$2
     shift 2
@@ -52,16 +65,12 @@ case $key in
     --with-ormolu=*)
     custom_ormolu_path=${1#*=}
     if [[ -z "$custom_ormolu_path" ]] ; then
-        echo The option \'--with-ormolu\' expects an argument.
-        usage
-        exit
+        die 1 "The option '--with-ormolu' expects an argument."
     fi
     shift
     ;;
     *)
-    echo "$0": unknown option: "$1"
-    usage
-    exit
+    die_with_usage 2 "unknown option: '$1'"
     ;;
 esac
 done
@@ -74,23 +83,17 @@ ormolu_executable=ormolu
 
 if [[ -n "$custom_ormolu_path" ]]; then
     if ! is_available "$custom_ormolu_path" ; then
-        echo "$0": Did not find ormolu at specified path: "$custom_ormolu_path"
-        usage
-        exit
+        die 3 "Did not find ormolu at specified path: $custom_ormolu_path"
     fi
     ormolu_executable="$custom_ormolu_path"
 fi
 
 if ! is_available "$ormolu_executable" ; then
-    echo "$0": Did not find ormolu.
-    usage
-    exit
+    die 4 "Did not find ormolu."
 fi
 
 if [[ -n $check_only && -n $force ]]; then
-    echo "$0": --check cannot be used with --force
-    usage
-    exit
+    die_with_usage 5 "'--check' cannot be used with '--force'"
 fi
 
 run_ormolu () {
