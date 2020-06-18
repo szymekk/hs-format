@@ -15,17 +15,19 @@ EOF
 }
 
 die () {
-    return_code=$1
-    shift
-    [[ $# -ne 0 ]] && echo "$0": "$*" 1>&2
-    exit "$return_code"
+    die_with_usage_impl 0 "$@"
 }
 
 die_with_usage () {
-    return_code=$1
-    shift
+    die_with_usage_impl 1 "$@"
+}
+
+die_with_usage_impl () {
+    print_usage=$1
+    return_code=$2
+    shift 2
     [[ $# -ne 0 ]] && echo "$0": "$*" 1>&2
-    usage 1>&2
+    [[ $print_usage -ne 0 ]] && usage 1>&2
     exit "$return_code"
 }
 
